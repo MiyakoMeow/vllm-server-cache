@@ -8,7 +8,6 @@ from pathlib import Path
 
 @dataclass
 class ModelConfig:
-
     """模型配置."""
 
     name: str
@@ -38,28 +37,14 @@ def check_port(port: int) -> bool:
 
 def generate_script(model: str, port: int, gguf_file: str | None) -> str:
     """生成启动脚本."""
-    model_arg = f'--model "{gguf_file}"' if gguf_file else model
-    lines = [
-        "#!/bin/bash",
-        f"# vLLM 启动脚本 - 模型: {model}",
-        "",
-        f"if ! nc -z localhost {port} 2>/dev/null; then",
-        "    echo ''",
-        f"    echo '正在启动 vLLM 服务 on port {port}...'",
-        "    echo ''",
-        f"    vllm serve {model_arg} \\",
-        f"        --port {port} \\",
-        "        --tensor-parallel-size 1 \\",
-        "        --gpu-memory-utilization 0.9",
-        "    echo ''",
-        f"    echo 'vLLM 服务已停止 (端口 {port})'",
-        "else",
-        "    echo ''",
-        f"    echo '错误: 端口 {port} 已被占用!'",
-        "    exit 1",
-        "fi",
-    ]
-    return "\n".join(lines) + "\n"
+    model_arg = f"{model} --model {gguf_file}" if gguf_file else model
+    cmd = (
+        f"vllm serve {model_arg} "
+        f"--port {port} "
+        f"--tensor-parallel-size 1 "
+        f"--gpu-memory-utilization 0.9"
+    )
+    return f"#!/bin/bash\n{cmd}\n"
 
 
 if __name__ == "__main__":
@@ -75,4 +60,3 @@ if __name__ == "__main__":
 
     script = generate_script(config.name, PORT, config.gguf_file)
     Path("run.sh").write_text(script, encoding="utf-8")
-
