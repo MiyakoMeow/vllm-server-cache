@@ -1,9 +1,12 @@
 """vLLM 本地推理服务启动脚本生成器."""
 
+import logging
 import socket
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -63,5 +66,7 @@ if __name__ == "__main__":
     if not check_port(PORT):
         sys.exit(1)
 
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     script = generate_script(config, PORT)
     Path("run.sh").write_text(script, encoding="utf-8")
+    logger.info("启动命令已写入 run.sh:\n%s", script)
