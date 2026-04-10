@@ -39,7 +39,7 @@ def check_port(port: int) -> bool:
 
 def generate_script(config: ModelConfig, port: int) -> str:
     """生成启动脚本."""
-    parts = [f"vllm serve {config.name}"]
+    parts = [f"uv run vllm serve {config.name}"]
     if config.gguf_file:
         parts.append(f"--model {config.gguf_file}")
     parts.append(f"--port {port}")
