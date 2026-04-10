@@ -1,5 +1,6 @@
 """vLLM 本地推理服务启动脚本生成器."""
 
+import argparse
 import logging
 import socket
 import sys
@@ -29,6 +30,7 @@ MODELS: dict[str, ModelConfig] = {
 }
 
 DEFAULT_MODEL = "qwen3.5-2b-q4km"
+DEFAULT_GPU_MEMORY_UTILIZATION = 0.75
 PORT = 50721
 
 
@@ -59,17 +61,31 @@ def generate_script(config: ModelConfig, port: int) -> str:
 
 
 if __name__ == "__main__":
-    model_key = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_MODEL
+    parser = argparse.ArgumentParser(description="生成 vLLM 启动脚本")
+    parser.add_argument("model", nargs="?", default=DEFAULT_MODEL, help="模型 key")
+    parser.add_argument(
+        "--gpu-memory-utilization",
+        type=float,
+        default=DEFAULT_GPU_MEMORY_UTILIZATION,
+        help="GPU 显存利用率 (0-1)",
+    )
+    parser.add_argument("--tensor-parallel-size", type=int, help="Tensor 并行度")
+    parser.add_argument("--port", type=int, default=PORT, help="服务端口")
+    args = parser.parse_args()
 
-    if model_key not in MODELS:
+    if args.model not in MODELS:
         sys.exit(1)
 
-    config = MODELS[model_key]
+    config = MODELS[args.model]
+    if args.gpu_memory_utilization is not None:
+        config.gpu_memory_utilization = args.gpu_memory_utilization
+    if args.tensor_parallel_size is not None:
+        config.tensor_parallel_size = args.tensor_parallel_size
 
-    if not check_port(PORT):
+    if not check_port(args.port):
         sys.exit(1)
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    script = generate_script(config, PORT)
+    script = generate_script(config, args.port)
     Path("run.sh").write_text(script, encoding="utf-8")
     logger.info("启动命令已写入 run.sh:\n%s", script)
