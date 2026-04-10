@@ -15,22 +15,27 @@
 # 安装依赖
 uv sync
 
-# 启动服务（自动检测端口冲突）
+# 生成启动脚本
 uv run python main.py
 
-# 或使用自定义参数
-uv run python main.py --model unsloth/Qwen3.5-2B-GGUF --port 50721 --gguf-file qwen3.5-2b-q4_k_m.gguf
+# 启动服务
+./run.sh
 ```
 
-## 参数说明
+## 拓展模型
 
-| 参数 | 说明 | 默认值 |
-|------|------|--------|
-| `--model` | 模型名称或路径 | unsoth/Qwen3.5-2B-GGUF |
-| `--gguf-file` | GGUF 文件名 | None |
-| `--port` | 服务端口 | 50721 |
-| `--gen-script` | 仅生成启动脚本 | False |
-| `--output` | 启动脚本输出路径 | run.sh |
+在 `main.py` 的 `MODELS` 字典中添加新模型：
+
+```python
+MODELS: dict[str, ModelConfig] = {
+    "qwen3.5-2b-q4km": ModelConfig(
+        name="unsloth/Qwen3.5-2B-GGUF",
+        gguf_file="qwen3.5-2b-q4_k_m.gguf",
+        tensor_parallel_size=1,
+        gpu_memory_utilization=0.9,
+    ),
+}
+```
 
 ## 验证服务
 
@@ -66,3 +71,4 @@ print(response.choices[0].message.content)
 
 - NVIDIA GPU with CUDA support
 - 推荐 8GB+ 显存 (RTX 2080 可用)
+- 架构: Turing (SM 7.5) ✅ 支持 GGUF
