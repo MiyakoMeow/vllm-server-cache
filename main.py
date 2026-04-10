@@ -12,6 +12,8 @@ class ModelConfig:
 
     name: str
     gguf_file: str | None = None
+    tensor_parallel_size: int | None = None
+    gpu_memory_utilization: float | None = None
 
 
 MODELS: dict[str, ModelConfig] = {
@@ -35,16 +37,17 @@ def check_port(port: int) -> bool:
     return True
 
 
-def generate_script(model: str, port: int, gguf_file: str | None) -> str:
+def generate_script(config: ModelConfig, port: int) -> str:
     """生成启动脚本."""
-    model_arg = f"{model} --model {gguf_file}" if gguf_file else model
-    cmd = (
-        f"vllm serve {model_arg} "
-        f"--port {port} "
-        f"--tensor-parallel-size 1 "
-        f"--gpu-memory-utilization 0.9"
-    )
-    return f"#!/bin/bash\n{cmd}\n"
+    parts = [f"vllm serve {config.name}"]
+    if config.gguf_file:
+        parts.append(f"--model {config.gguf_file}")
+    parts.append(f"--port {port}")
+    if config.tensor_parallel_size is not None:
+        parts.append(f"--tensor-parallel-size {config.tensor_parallel_size}")
+    if config.gpu_memory_utilization is not None:
+        parts.append(f"--gpu-memory-utilization {config.gpu_memory_utilization}")
+    return f"#!/bin/bash\n{' '.join(parts)}\n"
 
 
 if __name__ == "__main__":
@@ -58,5 +61,5 @@ if __name__ == "__main__":
     if not check_port(PORT):
         sys.exit(1)
 
-    script = generate_script(config.name, PORT, config.gguf_file)
+    script = generate_script(config, PORT)
     Path("run.sh").write_text(script, encoding="utf-8")
