@@ -23,9 +23,8 @@ class ModelConfig:
 
 MODELS: dict[str, ModelConfig] = {
     "qwen3.5-2b-q4km": ModelConfig(
-        name="unsloth/Qwen3.5-2B-GGUF:Q4_K_M",
+        name="Qwen/Qwen3.5-2B",
         tokenizer="Qwen/Qwen3.5-2B",
-        hf_config_path="Qwen/Qwen3.5-2B",
     ),
 }
 
