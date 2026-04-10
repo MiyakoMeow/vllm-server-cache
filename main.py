@@ -39,9 +39,11 @@ def check_port(port: int) -> bool:
 
 def generate_script(config: ModelConfig, port: int) -> str:
     """生成启动脚本."""
-    parts = [f"uv run vllm serve {config.name}"]
     if config.gguf_file:
-        parts.append(f"--model {config.gguf_file}")
+        model_arg = f'"{config.name}/{config.gguf_file}"'
+    else:
+        model_arg = f'"{config.name}"'
+    parts = [f"uv run vllm serve {model_arg}"]
     parts.append(f"--port {port}")
     if config.tensor_parallel_size is not None:
         parts.append(f"--tensor-parallel-size {config.tensor_parallel_size}")
