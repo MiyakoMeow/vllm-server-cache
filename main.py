@@ -15,6 +15,7 @@ class ModelConfig:
 
     name: str
     tokenizer: str | None = None
+    hf_config_path: str | None = None
     tensor_parallel_size: int | None = None
     gpu_memory_utilization: float | None = None
 
@@ -23,6 +24,7 @@ MODELS: dict[str, ModelConfig] = {
     "qwen3.5-2b-q4km": ModelConfig(
         name="unsloth/Qwen3.5-2B-GGUF:Q4_K_M",
         tokenizer="Qwen/Qwen3.5-2B",
+        hf_config_path="Qwen/Qwen3.5-2B",
     ),
 }
 
@@ -46,6 +48,8 @@ def generate_script(config: ModelConfig, port: int) -> str:
     parts = [f"uv run vllm serve {model_arg}"]
     if config.tokenizer:
         parts.append(f"--tokenizer {config.tokenizer}")
+    if config.hf_config_path:
+        parts.append(f"--hf-config-path {config.hf_config_path}")
     parts.append(f"--port {port}")
     if config.tensor_parallel_size is not None:
         parts.append(f"--tensor-parallel-size {config.tensor_parallel_size}")
